@@ -1,0 +1,11 @@
+{
+  "name": "benchmark",
+  "version": "0.1.0",
+  "sources": {
+    "dir" : "src",
+    "subdirs" : true
+  },
+  "warnings": {
+    "error" : "+101"
+  }
+}

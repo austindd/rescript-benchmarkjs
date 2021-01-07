@@ -1,0 +1,38 @@
+{
+  "name": "rescript-benchmark",
+  "version": "0.0.1",
+  "description": "ReScript bindings to the Benchmark.js library",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "start": "npx bsb -make-world -w",
+    "build": "npx bsb -make-world",
+    "clean": "npx bsb -clean-world",
+    "clean-start": "npx bsb -clean-world && npx bsb -make-world && npx bsb -w",
+    "clean-build": "npx bsb -clean-world && npx bsb -make-world"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/austindd/rescript-benchmark.git"
+  },
+  "keywords": [
+    "rescript",
+    "reason",
+    "reasonml",
+    "ocaml",
+    "benchmark",
+    "test",
+    "testing",
+    "performance",
+    "micro-benchmark"
+  ],
+  "author": "austindd",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/austindd/rescript-benchmark/issues"
+  },
+  "homepage": "https://github.com/austindd/rescript-benchmark#readme",
+  "devDependencies": {
+    "bs-platform": "^8.4.2"
+  }
+}
