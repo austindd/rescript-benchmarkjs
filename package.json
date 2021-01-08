@@ -1,5 +1,5 @@
 {
-  "name": "rescript-benchmark",
+  "name": "rescript-benchmarkjs",
   "version": "0.0.1",
   "description": "ReScript bindings to the Benchmark.js library",
   "main": "index.js",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/austindd/rescript-benchmark.git"
+    "url": "git+https://github.com/austindd/rescript-benchmarkjs.git"
   },
   "keywords": [
     "rescript",
@@ -29,9 +29,9 @@
   "author": "austindd",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/austindd/rescript-benchmark/issues"
+    "url": "https://github.com/austindd/rescript-benchmarkjs/issues"
   },
-  "homepage": "https://github.com/austindd/rescript-benchmark#readme",
+  "homepage": "https://github.com/austindd/rescript-benchmarkjs#readme",
   "devDependencies": {
     "bs-platform": "^8.4.2"
   },
