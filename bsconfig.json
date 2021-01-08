@@ -1,10 +1,17 @@
 {
   "name": "benchmark",
   "version": "0.1.0",
-  "sources": {
+  "sources": [
+  {
     "dir" : "src",
     "subdirs" : true
   },
+  {
+    "dir": "examples",
+    "type": "dev",
+    "subdirs": true
+  }
+  ],
   "warnings": {
     "error" : "+101"
   }
