@@ -34,5 +34,8 @@
   "homepage": "https://github.com/austindd/rescript-benchmark#readme",
   "devDependencies": {
     "bs-platform": "^8.4.2"
+  },
+  "dependencies": {
+    "benchmark": "^2.1.4"
   }
 }

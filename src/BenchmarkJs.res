@@ -13,51 +13,46 @@ type event
 @bs.deriving(jsConverter)
 type eventType = [#abort | #complete | #cycle | #error | #reset | #start]
 
-let __noopU = (. _) => ()
-// let __noopDeferredU = (. deferred) => ()
+let __noop1 = _ => ()
+let __noop1U = (. _) => ()
 
-type __config<'a> = {
-  fn: 'a,
-  async: bool,
+let __noop0 = () => ()
+let __noop0U = (. ()) => ()
+// let __noop_deferredU = (. deferred) => ()
+
+type rawConfig = {
   defer: bool,
+  async: bool,
   delay: float,
-  id: option<string>,
   initCount: int,
   maxTime: float,
   minSamples: int,
   minTime: float,
-  name: option<string>,
-  onAbort: option<(. event) => unit>,
-  onComplete: option<(. event) => unit>,
-  onCycle: option<(. event) => unit>,
-  onError: option<(. event) => unit>,
-  onReset: option<(. event) => unit>,
-  onStart: option<(. event) => unit>,
-  setup: option<(. unit) => unit>,
-  teardown: option<(. unit) => unit>,
+  onAbort: event => unit,
+  onComplete: event => unit,
+  onCycle: event => unit,
+  onError: event => unit,
+  onReset: event => unit,
+  onStart: event => unit,
+  setup: unit => unit,
+  teardown: unit => unit,
 }
-
-type __deferredConfig = __config<(. deferred) => unit>
-
-type __normalConfig = __config<(. unit) => unit>
 
 type config = {
   async: bool,
   delay: float,
-  id: option<string>,
   initCount: int,
   maxTime: float,
   minSamples: int,
   minTime: float,
-  name: option<string>,
-  onAbort: option<(. event) => unit>,
-  onComplete: option<(. event) => unit>,
-  onCycle: option<(. event) => unit>,
-  onError: option<(. event) => unit>,
-  onReset: option<(. event) => unit>,
-  onStart: option<(. event) => unit>,
-  setup: option<(. unit) => unit>,
-  teardown: option<(. unit) => unit>,
+  onAbort: event => unit,
+  onComplete: event => unit,
+  onCycle: event => unit,
+  onError: event => unit,
+  onReset: event => unit,
+  onStart: event => unit,
+  setup: unit => unit,
+  teardown: unit => unit,
 }
 
 /**
@@ -68,33 +63,28 @@ https://github.com/bestiejs/benchmark.js/blob/2.0.0/benchmark.js#L2126
 let defaultConfig = {
   async: false,
   delay: 0.005,
-  id: None,
   initCount: 1,
   maxTime: 5.,
   minSamples: 5,
   minTime: 0.,
-  name: None,
-  onAbort: None,
-  onComplete: None,
-  onCycle: None,
-  onError: None,
-  onReset: None,
-  onStart: None,
-  setup: None,
-  teardown: None,
+  onAbort: __noop1,
+  onComplete: __noop1,
+  onCycle: __noop1,
+  onError: __noop1,
+  onReset: __noop1,
+  onStart: __noop1,
+  setup: __noop0,
+  teardown: __noop0,
 }
 
-let __useDeferredConfig = (
-  fn: (. deferred) => unit,
+let rawConfig_deferred = (.
   {
     async,
     delay,
-    id,
     initCount,
     maxTime,
     minSamples,
     minTime,
-    name,
     onAbort,
     onComplete,
     onCycle,
@@ -104,17 +94,14 @@ let __useDeferredConfig = (
     setup,
     teardown,
   }: config,
-): __deferredConfig => {
-  fn: fn,
+): rawConfig => {
   defer: true,
   async: async,
   delay: delay,
-  id: id,
   initCount: initCount,
   maxTime: maxTime,
   minSamples: minSamples,
   minTime: minTime,
-  name: name,
   onAbort: onAbort,
   onComplete: onComplete,
   onCycle: onCycle,
@@ -125,17 +112,14 @@ let __useDeferredConfig = (
   teardown: teardown,
 }
 
-let __useNormalConfig = (
-  fn: (. unit) => unit,
+let rawConfig = (.
   {
     async,
     delay,
-    id,
     initCount,
     maxTime,
     minSamples,
     minTime,
-    name,
     onAbort,
     onComplete,
     onCycle,
@@ -145,17 +129,14 @@ let __useNormalConfig = (
     setup,
     teardown,
   }: config,
-): __normalConfig => {
-  fn: fn,
+): rawConfig => {
   defer: false,
   async: async,
   delay: delay,
-  id: id,
   initCount: initCount,
   maxTime: maxTime,
   minSamples: minSamples,
   minTime: minTime,
-  name: name,
   onAbort: onAbort,
   onComplete: onComplete,
   onCycle: onCycle,
@@ -166,24 +147,25 @@ let __useNormalConfig = (
   teardown: teardown,
 }
 
+let defaultRawConfig = rawConfig(. defaultConfig)
+let defaultRawConfig_deferred = rawConfig_deferred(. defaultConfig)
+
 type suiteConfig = {
-  name: option<string>,
-  onAbort: option<(. event) => unit>,
-  onComplete: option<(. event) => unit>,
-  onCycle: option<(. event) => unit>,
-  onError: option<(. event) => unit>,
-  onReset: option<(. event) => unit>,
-  onStart: option<(. event) => unit>,
+  onAbort: event => unit,
+  onComplete: event => unit,
+  onCycle: event => unit,
+  onError: event => unit,
+  onReset: event => unit,
+  onStart: event => unit,
 }
 
 let defaultSuiteConfig = {
-  name: None,
-  onAbort: None,
-  onComplete: None,
-  onCycle: None,
-  onError: None,
-  onReset: None,
-  onStart: None,
+  onAbort: __noop1,
+  onComplete: __noop1,
+  onCycle: __noop1,
+  onError: __noop1,
+  onReset: __noop1,
+  onStart: __noop1,
 }
 
 type times = {
@@ -210,31 +192,33 @@ module Benchmark = {
   type t = benchmark
 
   module Internal = {
-    @bs.module("benchmark") @bs.new external make: (string, (. unit) => unit) => t = "Benchmark"
     @bs.module("benchmark") @bs.new
-    external makeDeferred: (string, __deferredConfig) => t = "Benchmark"
+    external make: (string, (. unit) => unit) => t = "Benchmark"
     @bs.module("benchmark") @bs.new
-    external makeNormal: (string, __normalConfig) => t = "Benchmark"
-    @bs.get external getConfig: t => config = "options"
-    @bs.get external fn: (t, . unit) => unit = "fn"
-    @bs.get external setup: (t, . unit) => unit = "setup"
-    @bs.get external teardown: (t, . unit) => unit = "teardown"
+    external makeWithConfig: (string, (. unit) => unit, rawConfig) => t = "Benchmark"
+    @bs.module("benchmark") @bs.new
+    external makeWithConfig_deferred: (string, (. deferred) => unit, rawConfig) => t = "Benchmark"
+    @bs.get external unsafe_getRawConfig: t => rawConfig = "options"
+    @bs.get external unsafe_getFn: (t, . unit) => unit = "fn"
+    @bs.get external unsafe_getFn_deferred: (t, . deferred) => unit = "fn"
+    @bs.get external unsafe_getSetupFn: (t, . unit) => unit = "setup"
+    @bs.get external unsafe_getTeardownFn: (t, . unit) => unit = "teardown"
   }
 
-  let make: (~name: string, ~config: config=?, (. unit) => unit) => t = (~name, ~config=?, fn) =>
+  let make: (~config: config=?, string, (. unit) => unit) => t = (~config=?, name, fn) =>
     switch config {
-    | None => Internal.makeNormal(name, __useNormalConfig(fn, defaultConfig))
-    | Some(c) => Internal.makeNormal(name, __useNormalConfig(fn, c))
+    | None => Internal.makeWithConfig(name, fn, defaultRawConfig)
+    | Some(c) => Internal.makeWithConfig(name, fn, rawConfig(. c))
     }
 
-  let makeDeferred: (~name: string, ~config: config=?, (. deferred) => unit) => t = (
-    ~name,
+  let makeDeferred: (~config: config=?, string, (. deferred) => unit) => t = (
     ~config=?,
+    name,
     fn,
   ) =>
     switch config {
-    | None => Internal.makeDeferred(name, __useDeferredConfig(fn, defaultConfig))
-    | Some(c) => Internal.makeDeferred(name, __useDeferredConfig(fn, c))
+    | None => Internal.makeWithConfig_deferred(name, fn, defaultRawConfig_deferred)
+    | Some(c) => Internal.makeWithConfig_deferred(name, fn, rawConfig_deferred(. c))
     }
 
   @bs.send external run: t => t = "run"
@@ -244,24 +228,16 @@ module Benchmark = {
   @bs.get external compiled: (t, . unit) => unit = "compiled"
   @bs.get external cycles: t => int = "cycles"
   @bs.get external count: t => int = "count"
-  @bs.get external error: t => Js.nullable<Js.Exn.t> = "error"
+  @bs.get @return(nullable) external error: t => option<Js.Exn.t> = "error"
   @bs.get external hz: t => float = "hz"
   @bs.get external running: t => bool = "running"
   @bs.get external stats: t => stats = "stats"
-  @bs.get external time: t => times = "time"
+  @bs.get external times: t => times = "times"
   @bs.get external name: t => string = "name"
   @bs.send external abort: t => unit = "abort"
   @bs.send external toString: t => string = "toString"
   @bs.send external compare: t => int = "compare"
   @bs.send external reset: t => unit = "reset"
-}
-
-module Deferred = {
-  type t = deferred
-  @bs.get external benchmark: t => benchmark = "benchmark"
-  @bs.get external cycle: t => float = "cycle"
-  @bs.get external elapsed: t => float = "elapsed"
-  @bs.get external timeStamp: t => float = "timeStamp"
 }
 
 module Event = {
@@ -287,89 +263,72 @@ module Suite = {
     @bs.module("benchmark") @bs.scope("Benchmark") @bs.new
     external makeWithConfig: (string, suiteConfig) => t = "Suite"
     @bs.send external add: (t, string, (. unit) => unit) => t = "add"
-    @bs.send external addNormal: (t, string, __normalConfig) => t = "add"
-    @bs.send external addDeferred: (t, string, __deferredConfig) => t = "add"
+    @bs.send external addWithConfig: (t, string, (. unit) => unit, rawConfig) => t = "add"
+    @bs.send
+    external addWithConfig_deferred: (t, string, (. deferred) => unit, rawConfig) => t = "add"
     @bs.val @bs.scope(("Array", "prototype", "push"))
-    external addBenchmark: (. t, benchmark) => unit = "call"
+    external addBenchmark: (t, benchmark) => unit = "call"
     @bs.val @bs.scope(("Array", "prototype", "push"))
-    external addBenchmarkArray: (. t, array<benchmark>) => unit = "apply"
-    @bs.send external run: t => t = "run"
+    external addBenchmarkArray: (t, array<benchmark>) => unit = "apply"
     @bs.send external runWithConfig: (t, suiteConfig) => t = "run"
-    @bs.send external clone: t => t = "clone"
     @bs.send external cloneWithConfig: (t, suiteConfig) => t = "clone"
   }
 
   let make: (~config: suiteConfig=?, string) => t = (~config=?, name) =>
     switch config {
-    | None => Internal.make(name)
+    | None => Internal.makeWithConfig(name, defaultSuiteConfig)
     | Some(c) => Internal.makeWithConfig(name, c)
     }
 
-  let add: (t, ~name: string, ~config: config=?, (. unit) => unit) => t = (
-    suite,
-    ~name,
+  let add: (~config: config=?, t, string, (. unit) => unit) => t = (~config=?, suite, name, fn) =>
+    switch config {
+    | None => Internal.addWithConfig(suite, name, fn, defaultRawConfig)
+    | Some(c) => Internal.addWithConfig(suite, name, fn, rawConfig(. c))
+    }
+
+  let addDeferred: (~config: config=?, t, string, (. deferred) => unit) => t = (
     ~config=?,
+    suite,
+    name,
     fn,
   ) =>
     switch config {
-    | None => Internal.add(suite, name, fn)
-    | Some(c) => Internal.addNormal(suite, name, __useNormalConfig(fn, c))
+    | None => Internal.addWithConfig_deferred(suite, name, fn, defaultRawConfig_deferred)
+    | Some(c) => Internal.addWithConfig_deferred(suite, name, fn, rawConfig_deferred(. c))
     }
 
-  let addDeferred: (t, ~name: string, ~config: config=?, (. deferred) => unit) => t = (
-    suite,
-    ~name,
-    ~config=?,
-    fn,
-  ) =>
-    switch config {
-    | None => Internal.addDeferred(suite, name, __useDeferredConfig(fn, defaultConfig))
-    | Some(c) => Internal.addDeferred(suite, name, __useDeferredConfig(fn, c))
-    }
-
-  let run: (~config: suiteConfig=?, t) => t = (~config=?, suite) =>
-    switch config {
-    | None => Internal.run(suite)
-    | Some(c) => Internal.runWithConfig(suite, c)
-    }
-
-  let clone: (~config: suiteConfig=?, t) => t = (~config=?, suite) =>
-    switch config {
-    | None => Internal.clone(suite)
-    | Some(c) => Internal.cloneWithConfig(suite, c)
-    }
+  @bs.send external run: t => t = "run"
+  @bs.send external clone: t => t = "clone"
 
   @bs.send external emit: (t, eventType) => t = "emit"
   @bs.send external emitEventObject: (t, event) => t = "emit"
-  @bs.send external listeners: t => array<(. event) => unit> = "listeners"
-  @bs.send external listenersByEvent: (t, eventType) => array<(. event) => unit> = "listeners"
-  @bs.send external removeListener: (t, eventType, (. event) => unit) => t = "off"
+  @bs.send external listeners: t => array<event => unit> = "listeners"
+  @bs.send external listenersByEvent: (t, eventType) => array<event => unit> = "listeners"
+  @bs.send external removeListener: (t, eventType, @bs.uncurry (event => unit)) => t = "off"
   @bs.send external removeListenersByEvent: (t, eventType) => t = "off"
   @bs.send external removeAllListeners: t => t = "off"
-  @bs.send external addListener: (t, eventType, (. event) => unit) => t = "on"
+  @bs.send external addListener: (t, eventType, @bs.uncurry (event => unit)) => t = "on"
 
   @bs.get @bs.scope("options") external name: t => string = "name"
   @bs.get external aborted: t => bool = "aborted"
   @bs.get external length: t => int = "length"
   @bs.get external running: t => bool = "running"
 
-  let onAbort: (t, (. event) => unit) => t = (suite, handler) => addListener(suite, #abort, handler)
-  let onComplete: (t, (. event) => unit) => t = (suite, handler) =>
-    addListener(suite, #complete, handler)
-  let onCycle: (t, (. event) => unit) => t = (suite, handler) => addListener(suite, #cycle, handler)
-  let onError: (t, (. event) => unit) => t = (suite, handler) => addListener(suite, #error, handler)
-  let onReset: (t, (. event) => unit) => t = (suite, handler) => addListener(suite, #reset, handler)
-  let onStart: (t, (. event) => unit) => t = (suite, handler) => addListener(suite, #start, handler)
-
+  @bs.send external onAbort: (t, @bs.as("abort") _, @bs.uncurry (event => unit)) => t = "on"
+  @bs.send external onComplete: (t, @bs.as("complete") _, @bs.uncurry (event => unit)) => t = "on"
+  @bs.send external onCycle: (t, @bs.as("cycle") _, @bs.uncurry (event => unit)) => t = "on"
+  @bs.send external onError: (t, @bs.as("error") _, @bs.uncurry (event => unit)) => t = "on"
+  @bs.send external onReset: (t, @bs.as("reset") _, @bs.uncurry (event => unit)) => t = "on"
+  @bs.send external onStart: (t, @bs.as("start") _, @bs.uncurry (event => unit)) => t = "on"
   @bs.send external abort: t => t = "abort"
   @bs.send external reset: t => t = "reset"
 
-  let addBenchmark: (t, benchmark) => t = (suite, benchmark) => {
-    Internal.addBenchmark(. suite, benchmark)
+  let addExisting: (t, benchmark) => t = (suite, benchmark) => {
+    Internal.addBenchmark(suite, benchmark)
     suite
   }
-  let addBenchmarkU: (. t, benchmark) => t = (. suite, benchmark) => {
-    Internal.addBenchmark(. suite, benchmark)
+  let addExistingU: (. t, benchmark) => t = (. suite, benchmark) => {
+    Internal.addBenchmark(suite, benchmark)
     suite
   }
 
@@ -386,7 +345,7 @@ module Suite = {
     | None => make(name)
     | Some(opt) => make(name, ~config=opt)
     }
-    Belt.Array.reduceU(benchArray, suite, addBenchmarkU)
+    Belt.Array.reduceU(benchArray, suite, addExistingU)
   }
 
   let fromList: (~config: suiteConfig=?, ~name: string, list<benchmark>) => t = (
@@ -398,7 +357,7 @@ module Suite = {
     | None => make(name)
     | Some(opt) => make(name, ~config=opt)
     }
-    Belt.List.reduceU(benchList, suite, addBenchmarkU)
+    Belt.List.reduceU(benchList, suite, addExistingU)
   }
 
   @bs.send external filter: (t, benchmark => bool) => t = "filter"
@@ -406,13 +365,13 @@ module Suite = {
   @bs.send external filterBySlowest: (t, @bs.as("slowest") _) => t = "filter"
   @bs.send external filterBySuccessful: (t, @bs.as("successful") _) => t = "filter"
 
-  let addBenchmarkList: (t, list<benchmark>) => t = (suite, benchmarkList) => {
-    Internal.addBenchmarkArray(. suite, Belt.List.toArray(benchmarkList))
+  let addList: (t, list<benchmark>) => t = (suite, benchmarkList) => {
+    Internal.addBenchmarkArray(suite, Belt.List.toArray(benchmarkList))
     suite
   }
 
-  let addBenchmarkArray: (t, array<benchmark>) => t = (suite, benchmarkArray) => {
-    Internal.addBenchmarkArray(. suite, benchmarkArray)
+  let addArray: (t, array<benchmark>) => t = (suite, benchmarkArray) => {
+    Internal.addBenchmarkArray(suite, benchmarkArray)
     suite
   }
 }
