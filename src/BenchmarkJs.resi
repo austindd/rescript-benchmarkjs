@@ -8,9 +8,16 @@ type deferred = private {
   timeStamp: float,
 }
 
-type event
-
 type eventType = [#abort | #complete | #cycle | #error | #reset | #start]
+
+type event = private {
+  aborted: bool,
+  cancelled: bool,
+  currentTarget: benchmark,
+  target: benchmark,
+  timeStamp: float,
+  @as("type") type_: eventType,
+}
 
 type config = {
   async: bool,
