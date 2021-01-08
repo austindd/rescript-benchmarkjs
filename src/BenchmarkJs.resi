@@ -8,41 +8,9 @@ type deferred = private {
   timeStamp: float,
 }
 
-@bs.deriving(jsConverter)
+type event
+
 type eventType = [#abort | #complete | #cycle | #error | #reset | #start]
-
-type event = private {
-  aborted: bool,
-  cancelled: bool,
-  currentTarget: benchmark,
-  target: benchmark,
-  timeStamp: float,
-  @as("type") type_: eventType,
-}
-
-let __noop1 = _ => ()
-let __noop1U = (. _) => ()
-
-let __noop0 = () => ()
-let __noop0U = (. ()) => ()
-
-type rawConfig = {
-  defer: bool,
-  async: bool,
-  delay: float,
-  initCount: int,
-  maxTime: float,
-  minSamples: int,
-  minTime: float,
-  onAbort: event => unit,
-  onComplete: event => unit,
-  onCycle: event => unit,
-  onError: event => unit,
-  onReset: event => unit,
-  onStart: event => unit,
-  setup: unit => unit,
-  teardown: unit => unit,
-}
 
 type config = {
   async: bool,
@@ -61,101 +29,6 @@ type config = {
   teardown: unit => unit,
 }
 
-/**
-The default options that are copied for each `Benchmark` instance, as
-identified in the source code here:
-https://github.com/bestiejs/benchmark.js/blob/2.0.0/benchmark.js#L2126
- */
-let defaultConfig = {
-  async: false,
-  delay: 0.005,
-  initCount: 1,
-  maxTime: 5.,
-  minSamples: 5,
-  minTime: 0.,
-  onAbort: __noop1,
-  onComplete: __noop1,
-  onCycle: __noop1,
-  onError: __noop1,
-  onReset: __noop1,
-  onStart: __noop1,
-  setup: __noop0,
-  teardown: __noop0,
-}
-
-let rawConfig_deferred = (.
-  {
-    async,
-    delay,
-    initCount,
-    maxTime,
-    minSamples,
-    minTime,
-    onAbort,
-    onComplete,
-    onCycle,
-    onError,
-    onReset,
-    onStart,
-    setup,
-    teardown,
-  }: config,
-): rawConfig => {
-  defer: true,
-  async: async,
-  delay: delay,
-  initCount: initCount,
-  maxTime: maxTime,
-  minSamples: minSamples,
-  minTime: minTime,
-  onAbort: onAbort,
-  onComplete: onComplete,
-  onCycle: onCycle,
-  onError: onError,
-  onReset: onReset,
-  onStart: onStart,
-  setup: setup,
-  teardown: teardown,
-}
-
-let rawConfig = (.
-  {
-    async,
-    delay,
-    initCount,
-    maxTime,
-    minSamples,
-    minTime,
-    onAbort,
-    onComplete,
-    onCycle,
-    onError,
-    onReset,
-    onStart,
-    setup,
-    teardown,
-  }: config,
-): rawConfig => {
-  defer: false,
-  async: async,
-  delay: delay,
-  initCount: initCount,
-  maxTime: maxTime,
-  minSamples: minSamples,
-  minTime: minTime,
-  onAbort: onAbort,
-  onComplete: onComplete,
-  onCycle: onCycle,
-  onError: onError,
-  onReset: onReset,
-  onStart: onStart,
-  setup: setup,
-  teardown: teardown,
-}
-
-let defaultRawConfig = rawConfig(. defaultConfig)
-let defaultRawConfig_deferred = rawConfig_deferred(. defaultConfig)
-
 type suiteConfig = {
   onAbort: event => unit,
   onComplete: event => unit,
@@ -163,15 +36,6 @@ type suiteConfig = {
   onError: event => unit,
   onReset: event => unit,
   onStart: event => unit,
-}
-
-let defaultSuiteConfig = {
-  onAbort: __noop1,
-  onComplete: __noop1,
-  onCycle: __noop1,
-  onError: __noop1,
-  onReset: __noop1,
-  onStart: __noop1,
 }
 
 type times = {
@@ -191,37 +55,19 @@ type stats = {
   variance: float,
 }
 
-let eventTypeFromString: string => option<eventType> = eventTypeFromJs
-let eventTypeToString: eventType => string = eventTypeToJs
+let eventTypeFromString: string => option<eventType>
+let eventTypeToString: eventType => string
 
-module Benchmark = {
+module Benchmark: {
   type t = benchmark
+  type config = config
+  let defaultConfig: config
 
-  module Internal = {
-    @bs.module("benchmark") @bs.new
-    external makeWithConfig: (string, (. unit) => unit, rawConfig) => t = "Benchmark"
-    @bs.module("benchmark") @bs.new
-    external makeWithConfig_deferred: (string, (. deferred) => unit, rawConfig) => t = "Benchmark"
-  }
-
-  let make: (~config: config=?, string, (. unit) => unit) => t = (~config=?, name, fn) =>
-    switch config {
-    | None => Internal.makeWithConfig(name, fn, defaultRawConfig)
-    | Some(c) => Internal.makeWithConfig(name, fn, rawConfig(. c))
-    }
-
-  let makeDeferred: (~config: config=?, string, (. deferred) => unit) => t = (
-    ~config=?,
-    name,
-    fn,
-  ) =>
-    switch config {
-    | None => Internal.makeWithConfig_deferred(name, fn, defaultRawConfig_deferred)
-    | Some(c) => Internal.makeWithConfig_deferred(name, fn, rawConfig_deferred(. c))
-    }
-
+  let make: (~config: config=?, string, (. unit) => unit) => t
+  let makeDeferred: (~config: config=?, string, (. deferred) => unit) => t
   @bs.send external run: t => t = "run"
   @bs.send external clone: t => t = "clone"
+
   @bs.get external aborted: t => bool = "aborted"
   @bs.get external compiled: (t, . unit) => unit = "compiled"
   @bs.get external cycles: t => int = "cycles"
@@ -236,12 +82,9 @@ module Benchmark = {
   @bs.send external toString: t => string = "toString"
   @bs.send external compare: t => int = "compare"
   @bs.send external reset: t => unit = "reset"
-
-  type config = config
-  let defaultConfig = defaultConfig
 }
 
-module Event = {
+module Event: {
   type t = event
   type eventType = eventType
   @bs.module("benchmark") @bs.scope("Benchmark") @bs.new external make: string => t = "Event"
@@ -254,43 +97,12 @@ module Event = {
   @bs.get external type_: t => eventType = "type"
 }
 
-module Suite = {
+module Suite: {
   type t = suite
-
-  module Internal = {
-    @bs.module("benchmark") @bs.scope("Benchmark") @bs.new
-    external makeWithConfig: (string, suiteConfig) => t = "Suite"
-    @bs.send external addWithConfig: (t, string, (. unit) => unit, rawConfig) => t = "add"
-    @bs.send
-    external addWithConfig_deferred: (t, string, (. deferred) => unit, rawConfig) => t = "add"
-    @bs.val @bs.scope(("Array", "prototype", "push"))
-    external addBenchmark: (t, benchmark) => unit = "call"
-    @bs.val @bs.scope(("Array", "prototype", "push"))
-    external addBenchmarkArray: (t, array<benchmark>) => unit = "apply"
-  }
-
-  let make: (~config: suiteConfig=?, string) => t = (~config=?, name) =>
-    switch config {
-    | None => Internal.makeWithConfig(name, defaultSuiteConfig)
-    | Some(c) => Internal.makeWithConfig(name, c)
-    }
-
-  let add: (~config: config=?, t, string, (. unit) => unit) => t = (~config=?, suite, name, fn) =>
-    switch config {
-    | None => Internal.addWithConfig(suite, name, fn, defaultRawConfig)
-    | Some(c) => Internal.addWithConfig(suite, name, fn, rawConfig(. c))
-    }
-
-  let addDeferred: (~config: config=?, t, string, (. deferred) => unit) => t = (
-    ~config=?,
-    suite,
-    name,
-    fn,
-  ) =>
-    switch config {
-    | None => Internal.addWithConfig_deferred(suite, name, fn, defaultRawConfig_deferred)
-    | Some(c) => Internal.addWithConfig_deferred(suite, name, fn, rawConfig_deferred(. c))
-    }
+  let make: (~config: suiteConfig=?, string) => t
+  let add: (~config: config=?, t, string, (. unit) => unit) => t
+  let addExisting: (t, benchmark) => t
+  let addDeferred: (~config: config=?, t, string, (. deferred) => unit) => t
 
   @bs.send external run: t => t = "run"
   @bs.send external clone: t => t = "clone"
@@ -318,70 +130,29 @@ module Suite = {
   @bs.send external abort: t => t = "abort"
   @bs.send external reset: t => t = "reset"
 
-  let addExisting: (t, benchmark) => t = (suite, benchmark) => {
-    Internal.addBenchmark(suite, benchmark)
-    suite
-  }
-  let addExistingU: (. t, benchmark) => t = (. suite, benchmark) => {
-    Internal.addBenchmark(suite, benchmark)
-    suite
-  }
-
   @bs.val @bs.scope(("Array", "prototype", "slice"))
   external toArray: t => array<benchmark> = "call"
-  let toList: t => list<benchmark> = suite => toArray(suite)->Belt.List.fromArray
-
-  let fromArray: (~config: suiteConfig=?, ~name: string, array<benchmark>) => t = (
-    ~config=?,
-    ~name,
-    benchArray,
-  ) => {
-    let suite = switch config {
-    | None => make(name)
-    | Some(opt) => make(name, ~config=opt)
-    }
-    Belt.Array.reduceU(benchArray, suite, addExistingU)
-  }
-
-  let fromList: (~config: suiteConfig=?, ~name: string, list<benchmark>) => t = (
-    ~config=?,
-    ~name,
-    benchList,
-  ) => {
-    let suite = switch config {
-    | None => make(name)
-    | Some(opt) => make(name, ~config=opt)
-    }
-    Belt.List.reduceU(benchList, suite, addExistingU)
-  }
+  let toList: t => list<benchmark>
+  let fromArray: (~config: suiteConfig=?, ~name: string, array<benchmark>) => t
+  let fromList: (~config: suiteConfig=?, ~name: string, list<benchmark>) => t
 
   @bs.send external filter: (t, benchmark => bool) => t = "filter"
   @bs.send external filterByFastest: (t, @bs.as("fastest") _) => t = "filter"
   @bs.send external filterBySlowest: (t, @bs.as("slowest") _) => t = "filter"
   @bs.send external filterBySuccessful: (t, @bs.as("successful") _) => t = "filter"
 
-  let addList: (t, list<benchmark>) => t = (suite, benchmarkList) => {
-    Internal.addBenchmarkArray(suite, Belt.List.toArray(benchmarkList))
-    suite
-  }
-
-  let addArray: (t, array<benchmark>) => t = (suite, benchmarkArray) => {
-    Internal.addBenchmarkArray(suite, benchmarkArray)
-    suite
-  }
+  let addList: (t, list<benchmark>) => t
+  let addArray: (t, array<benchmark>) => t
 
   type config = suiteConfig
-  let defaultConfig = defaultSuiteConfig
+  let defaultConfig: suiteConfig
+
 }
 
-module Utils = {
+module Utils: {
   @bs.module("benchmark") @bs.scope("Benchmark")
   external formatNumber: float => string = "formatNumber"
 
-  /**
-   * [ filterBenchmarks(benchmarkArray, predicate) ]
-   * Filters an array of benchmark objects based on the return value of the predicate function.
-   */
   @bs.module("benchmark") @bs.scope("Benchmark")
   external filterBenchmarks: (array<benchmark>, benchmark => bool) => array<benchmark> = "filter"
 
@@ -396,8 +167,8 @@ module Utils = {
     "filter"
 }
 
-module Platform = {
-  module Os = {
+module Platform: {
+  module Os: {
     /* * [ architecture ] The orchitecture of the operating system. */
     @bs.module("benchmark") @bs.scope(("Benchmark", "platform", "os")) @bs.val @return(nullable)
     external architecture: option<string> = "architecture"
@@ -448,7 +219,7 @@ module Platform = {
   external toString: unit => string = "toString"
 }
 
-module Support = {
+module Support: {
   /* * [ browser ] Will be set to [ true ] if the code is running in a web browser context. */
   @bs.module("benchmark") @bs.scope(("Benchmark", "support")) external browser: bool = "browser"
 
