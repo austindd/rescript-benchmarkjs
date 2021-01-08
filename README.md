@@ -1,4 +1,4 @@
-# rescript-benchmark
+# rescript-benchmarkjs
 ReScript bindings to the Benchmark.js library
 
 ## Usage
