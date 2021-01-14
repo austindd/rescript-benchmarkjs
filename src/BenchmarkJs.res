@@ -20,6 +20,9 @@ type event = private {
   @as("type") type_: eventType,
 }
 
+@bs.module("benchmark") @bs.scope("Benchmark") @bs.new external makeEvent: eventType => event = "Event"
+@bs.module("benchmark") @bs.scope("Benchmark") @bs.new external cloneEvent: event => event = "Event"
+
 let __noop1 = _ => ()
 let __noop1U = (. _) => ()
 
@@ -239,19 +242,6 @@ module Benchmark = {
 
   type config = benchmarkConfig
   let defaultConfig = defaultConfig
-}
-
-module Event = {
-  type t = event
-  type eventType = eventType
-  @bs.module("benchmark") @bs.scope("Benchmark") @bs.new external make: string => t = "Event"
-  @bs.module("benchmark") @bs.scope("Benchmark") @bs.new external fromEvent: t => t = "Event"
-  @bs.get external aborted: t => bool = "aborted"
-  @bs.get external cancelled: t => bool = "cancelled"
-  @bs.get external currentTarget: t => benchmark = "currentTarget"
-  @bs.get external target: t => benchmark = "target"
-  @bs.get external timeStamp: t => int = "timeStamp"
-  @bs.get external type_: t => eventType = "type"
 }
 
 module Suite = {

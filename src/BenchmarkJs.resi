@@ -9,6 +9,8 @@ type deferred = private {
 }
 
 type eventType = [#abort | #complete | #cycle | #error | #reset | #start]
+let eventTypeFromString: string => option<eventType>
+let eventTypeToString: eventType => string
 
 type event = private {
   aborted: bool,
@@ -18,6 +20,9 @@ type event = private {
   timeStamp: float,
   @as("type") type_: eventType,
 }
+
+@bs.module("benchmark") @bs.scope("Benchmark") @bs.new external makeEvent: eventType => event = "Event"
+@bs.module("benchmark") @bs.scope("Benchmark") @bs.new external cloneEvent: event => event = "Event"
 
 type benchmarkConfig = {
   async: bool,
@@ -62,9 +67,6 @@ type stats = {
   variance: float,
 }
 
-let eventTypeFromString: string => option<eventType>
-let eventTypeToString: eventType => string
-
 module Benchmark: {
   type t = benchmark
   type config = benchmarkConfig
@@ -89,19 +91,6 @@ module Benchmark: {
   @bs.send external toString: t => string = "toString"
   @bs.send external compare: t => int = "compare"
   @bs.send external reset: t => unit = "reset"
-}
-
-module Event: {
-  type t = event
-  type eventType = eventType
-  @bs.module("benchmark") @bs.scope("Benchmark") @bs.new external make: string => t = "Event"
-  @bs.module("benchmark") @bs.scope("Benchmark") @bs.new external fromEvent: t => t = "Event"
-  @bs.get external aborted: t => bool = "aborted"
-  @bs.get external cancelled: t => bool = "cancelled"
-  @bs.get external currentTarget: t => benchmark = "currentTarget"
-  @bs.get external target: t => benchmark = "target"
-  @bs.get external timeStamp: t => int = "timeStamp"
-  @bs.get external type_: t => eventType = "type"
 }
 
 module Suite: {
