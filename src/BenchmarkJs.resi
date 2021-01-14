@@ -19,7 +19,7 @@ type event = private {
   @as("type") type_: eventType,
 }
 
-type config = {
+type benchmarkConfig = {
   async: bool,
   delay: float,
   initCount: int,
@@ -67,7 +67,7 @@ let eventTypeToString: eventType => string
 
 module Benchmark: {
   type t = benchmark
-  type config = config
+  type config = benchmarkConfig
   let defaultConfig: config
 
   let make: (~config: config=?, string, (. unit) => unit) => t
@@ -107,9 +107,9 @@ module Event: {
 module Suite: {
   type t = suite
   let make: (~config: suiteConfig=?, string) => t
-  let add: (~config: config=?, t, string, (. unit) => unit) => t
+  let add: (~config: benchmarkConfig=?, t, string, (. unit) => unit) => t
   let addExisting: (t, benchmark) => t
-  let addDeferred: (~config: config=?, t, string, (. deferred) => unit) => t
+  let addDeferred: (~config: benchmarkConfig=?, t, string, (. deferred) => unit) => t
 
   @bs.send external run: t => t = "run"
   @bs.send external clone: t => t = "clone"

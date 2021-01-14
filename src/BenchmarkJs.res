@@ -44,7 +44,7 @@ type rawConfig = {
   teardown: unit => unit,
 }
 
-type config = {
+type benchmarkConfig = {
   async: bool,
   delay: float,
   initCount: int,
@@ -99,7 +99,7 @@ let rawConfig_deferred = (.
     onStart,
     setup,
     teardown,
-  }: config,
+  }: benchmarkConfig,
 ): rawConfig => {
   defer: true,
   async: async,
@@ -134,7 +134,7 @@ let rawConfig = (.
     onStart,
     setup,
     teardown,
-  }: config,
+  }: benchmarkConfig,
 ): rawConfig => {
   defer: false,
   async: async,
@@ -204,13 +204,13 @@ module Benchmark = {
     external makeWithConfig_deferred: (string, (. deferred) => unit, rawConfig) => t = "Benchmark"
   }
 
-  let make: (~config: config=?, string, (. unit) => unit) => t = (~config=?, name, fn) =>
+  let make: (~config: benchmarkConfig=?, string, (. unit) => unit) => t = (~config=?, name, fn) =>
     switch config {
     | None => Internal.makeWithConfig(name, fn, defaultRawConfig)
     | Some(c) => Internal.makeWithConfig(name, fn, rawConfig(. c))
     }
 
-  let makeDeferred: (~config: config=?, string, (. deferred) => unit) => t = (
+  let makeDeferred: (~config: benchmarkConfig=?, string, (. deferred) => unit) => t = (
     ~config=?,
     name,
     fn,
@@ -237,7 +237,7 @@ module Benchmark = {
   @bs.send external compare: t => int = "compare"
   @bs.send external reset: t => unit = "reset"
 
-  type config = config
+  type config = benchmarkConfig
   let defaultConfig = defaultConfig
 }
 
@@ -275,13 +275,13 @@ module Suite = {
     | Some(c) => Internal.makeWithConfig(name, c)
     }
 
-  let add: (~config: config=?, t, string, (. unit) => unit) => t = (~config=?, suite, name, fn) =>
+  let add: (~config: benchmarkConfig=?, t, string, (. unit) => unit) => t = (~config=?, suite, name, fn) =>
     switch config {
     | None => Internal.addWithConfig(suite, name, fn, defaultRawConfig)
     | Some(c) => Internal.addWithConfig(suite, name, fn, rawConfig(. c))
     }
 
-  let addDeferred: (~config: config=?, t, string, (. deferred) => unit) => t = (
+  let addDeferred: (~config: benchmarkConfig=?, t, string, (. deferred) => unit) => t = (
     ~config=?,
     suite,
     name,
