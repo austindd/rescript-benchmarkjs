@@ -1,21 +1,3 @@
-# rescript-benchmarkjs
-ReScript bindings to [Benchmark.js](https://github.com/bestiejs/benchmark.js/), an excellent performance benchmarking library.
-
-## Installation
-
-Using `npm`:
-```shell
-npm install --save-dev rescript-benchmarkjs
-```
-
-Using `yarn`:
-```shell
-yarn add --dev rescript-benchmarkjs
-```
-
-## Usage
-
-```rescript
 open BenchmarkJs
 
 let suiteConfig = {
@@ -47,4 +29,3 @@ Suite.make("Array Sort", ~config=suiteConfig)
 ->Suite.toArray
 ->Belt.Array.map(Benchmark.toString)
 ->Belt.Array.forEach(Js.log)
-```
