@@ -45,7 +45,7 @@ let myArray = Belt.Array.makeBy(1000, _ => Random.int(99999))
 
 Suite.make("Array Sort", ~config=suiteConfig)
 ->Suite.add("Belt.SortArray.stableSortBy", ~config=benchmarkConfig, (. ()) => {
-  let result = Belt.SortArray.stableSortBy(myArray, Pervasives.compare)
+  let result = myArray->Belt.SortArray.stableSortBy(Pervasives.compare)
   ignore(result)
 })
 ->Suite.add("Js.Array2.slice + Js.Array2.sortInPlace", ~config=benchmarkConfig, (. ()) => {
