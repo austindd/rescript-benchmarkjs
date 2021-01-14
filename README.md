@@ -13,6 +13,15 @@ Using `yarn`:
 yarn add --dev rescript-benchmarkjs
 ```
 
+Don't forget to add the dependency to your `bsconfig.json` file:
+```json
+{
+  bs-dev-dependencies: [
+    "rescript-benchmarkjs"
+  ]
+}
+```
+
 ## Usage
 
 ```rescript
