@@ -1,6 +1,6 @@
 {
-  "name": "benchmark",
-  "version": "0.1.0",
+  "name": "rescript-benchmarkjs",
+  "version": "1.0.1",
   "sources": [
   {
     "dir" : "src",

@@ -1,6 +1,6 @@
 {
   "name": "rescript-benchmarkjs",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "ReScript bindings to the Benchmark.js library",
   "main": "index.js",
   "scripts": {
